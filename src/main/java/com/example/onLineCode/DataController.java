@@ -21,24 +21,42 @@ public class DataController {
 
     @PostMapping("/data")
     public ResponseEntity<Map<String, String>> receiveData(@RequestBody Map<String, Object> payload) {
-        // Expecting: language_id (Integer), source_code (String, base64), stdin (String, base64)
+        // Expecting: language_id (Integer), source_code (String, base64), stdin
+        // (String, base64)
         Integer languageId = (Integer) payload.get("language_id");
         String sourceCode = (String) payload.get("source_code");
         String stdin = (String) payload.get("stdin");
 
-        // Pass base64-decoded values to Judge0Client (it will re-encode, but that's fine for now)
+        // Pass base64-decoded values to Judge0Client (it will re-encode, but that's
+        // fine for now)
         byte[] decodedSource = Base64.getDecoder().decode(sourceCode);
         byte[] decodedStdin = Base64.getDecoder().decode(stdin);
         String token = judge0Client.createSubmission(languageId, new String(decodedSource), new String(decodedStdin));
         System.out.println("got token");
-        try {Thread.sleep(5000);} catch (InterruptedException e) {}
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+        }
         String judge0Response = judge0Client.getSubmission(token);
         System.out.println(judge0Response);
         String decodedStdout = "";
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode map = objectMapper.readTree(judge0Response);
-            String stdoutBase64 = map.has("stdout") && !map.get("stdout").isNull() ? map.get("stdout").asText() : "";
+            String stdoutBase64 = "";
+            if (map.get("stdout").asText() != "null") {
+                stdoutBase64 = map.get("stdout").asText();
+                System.out.println(map.get("stdout"));
+                System.out.println(map.get("stdout").asText() != "null");
+                System.out.println("stdout " + stdoutBase64);
+            } else if (map.get("stderr").asText() != "null") {
+                stdoutBase64 = map.get("stderr").asText();
+                System.out.println("error " + stdoutBase64);
+            } else {
+                stdoutBase64 = "";
+                System.out.println("prazen " + stdoutBase64);
+            }
+
             if (!stdoutBase64.isEmpty()) {
                 byte[] stdoutBytes = Base64.getDecoder().decode(stdoutBase64);
                 decodedStdout = new String(stdoutBytes);
@@ -48,8 +66,7 @@ public class DataController {
         }
         Map<String, String> response = Map.of(
                 "status", "success",
-                "stdout", decodedStdout
-        );
+                "stdout", decodedStdout);
         return ResponseEntity.ok(response);
     }
 
