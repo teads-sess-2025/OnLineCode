@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
 import {NgForOf} from '@angular/common';
+import { NOTES_BASE_URL } from '../app.config';
 
 interface ResponseType{
   received: string,
@@ -109,7 +110,7 @@ export class CodeInput {
       stdin: base64Stdin
     };
     this.feedback = 'Running...';
-    this.http.post<any>('https://onlinecode.greenisland-0015b907.westeurope.azurecontainerapps.io/api/data', payload)
+    this.http.post<any>(NOTES_BASE_URL, payload)
       .subscribe({
         next: (response) => {
           if (response && typeof response.stdout !== 'undefined') {

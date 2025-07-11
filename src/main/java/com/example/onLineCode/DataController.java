@@ -33,6 +33,7 @@ public class DataController {
         System.out.println("got token");
         try {Thread.sleep(5000);} catch (InterruptedException e) {}
         String judge0Response = judge0Client.getSubmission(token);
+        System.out.println(judge0Response);
         String decodedStdout = "";
         try {
             ObjectMapper objectMapper = new ObjectMapper();
